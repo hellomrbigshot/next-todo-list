@@ -1,24 +1,23 @@
 # next-todo-list
+### 介绍
+使用 vue3.0 实现的 TodoList。注意点有两个
 
-## Project setup
+1. todos 初始化使用 ```ref([])``` 而不是 ```reactive([])```
+2. watch 中监控的 todos 可以直接保存，不用取 ```todos.value```
+
+在 ```public/index.html``` 中使用了 ```cdn``` 样式
+
+## 安装依赖
 ```
 npm install
 ```
 
-### Compiles and hot-reloads for development
+### 本地运行
 ```
 npm run serve
 ```
 
-### Compiles and minifies for production
+### 打包
 ```
 npm run build
 ```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
