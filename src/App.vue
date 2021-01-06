@@ -11,88 +11,103 @@
     />
     <!-- <TodoList/> -->
     <section v-show="todos.length" class="main">
-        <input
-          v-model="allDone"
-          id="toggle-all"
-          class="toggle-all"
-          type="checkbox"
-        />
-        <label for="toggle-all"></label>
-        <ul class="todo-list">
-          <li
-            v-for="todo in filteredTodos"
-            :key="todo.id"
-            class="todo"
-            :class="{ completed: todo.completed, editing: todo == editedTodo }"
-          >
-            <div class="view">
-              <input v-model="todo.completed" class="toggle" type="checkbox"/>
-              <label @dblclick="editTodo(todo)">{{ todo.title }}</label>
-              <button class="destroy" @click="removeTodo(todo)"></button>
-            </div>
-            <input
-              v-model="todo.title"
-              v-todo-focus="todo === editedTodo"
-              class="edit"
-              type="text"
-              @blur="doneEdit(todo)"
-              @keyup.enter="doneEdit(todo)"
-              @keyup.esc="cancelEdit(todo)"
-            />
-          </li>
-        </ul>
-      </section>
-      <footer v-show="todos.length" class="footer">
-        <span class="todo-count">
-          <strong>{{ remaining }}</strong> {{ remaining > 1 ? 'items' : 'item' }} left
-        </span>
-        <ul class="filters">
-          <li>
-            <a href="#/all" :class="{ selected: visibility == 'all' }">All</a>
-          </li>
-          <li>
-            <a href="#/active" :class="{ selected: visibility == 'active' }">Active</a>
-          </li>
-          <li>
-            <a
-              href="#/completed"
-              :class="{ selected: visibility == 'completed' }"
-            >Completed</a>
-          </li>
-        </ul>
-        <button
-          class="clear-completed"
-          v-show="todos.length > remaining"
-          @click="removeCompleted"
+      <input
+        v-model="allDone"
+        id="toggle-all"
+        class="toggle-all"
+        type="checkbox"
+      />
+      <label for="toggle-all"></label>
+      <ul class="todo-list">
+        <li
+          v-for="todo in filteredTodos"
+          :key="todo.id"
+          class="todo"
+          :class="{ completed: todo.completed, editing: todo == editedTodo }"
         >
-          Clear completed
-        </button>
-      </footer>
+          <div class="view">
+            <input v-model="todo.completed" class="toggle" type="checkbox"/>
+            <label @dblclick="editTodo(todo)">{{ todo.title }}</label>
+            <button class="destroy" @click="removeTodo(todo)"></button>
+          </div>
+          <input
+            v-model="todo.title"
+            v-todo-focus="todo === editedTodo"
+            class="edit"
+            type="text"
+            @blur="doneEdit(todo)"
+            @keyup.enter="doneEdit(todo)"
+            @keyup.esc="cancelEdit(todo)"
+          />
+        </li>
+      </ul>
+    </section>
+    <footer v-show="todos.length" class="footer">
+      <span class="todo-count">
+        <strong>{{ remaining }}</strong> {{ remaining > 1 ? 'items' : 'item' }} left
+      </span>
+      <ul class="filters">
+        <li>
+          <a href="#/all" :class="{ selected: visibility == 'all' }">All</a>
+        </li>
+        <li>
+          <a href="#/active" :class="{ selected: visibility == 'active' }">Active</a>
+        </li>
+        <li>
+          <a
+            href="#/completed"
+            :class="{ selected: visibility == 'completed' }"
+          >Completed</a>
+        </li>
+      </ul>
+      <button
+        class="clear-completed"
+        v-show="todos.length > remaining"
+        @click="removeCompleted"
+      >
+        Clear completed
+      </button>
+    </footer>
   </div>
 </template>
+<script lang="ts">
+import { defineComponent, ref, computed, watch, onMounted, onUnmounted, Ref } from 'vue'
 
-<script>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+interface ITodo {
+  completed: boolean,
+  id: number,
+  title: string
+}
+interface ITodoStorage {
+  fetch: () => ITodo[],
+  save: (todos: ITodo[]) => boolean | undefined,
+  uid: number
+}
+interface IFilters {
+  [x: string]: any,
+  all: (todos: ITodo[]) => ITodo[],
+  active: (todos: ITodo[]) => ITodo[],
+  completed: (todos: ITodo[]) => ITodo[]
+}
 
- // localStorage persistence
-const STORAGE_KEY = "todos-vuejs-3.0";
-const todoStorage = {
+const STORAGE_KEY: string = "todos-vuejs-3.0"
+const todoStorage: ITodoStorage = {
   fetch () {
-    const todos = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
+    const todos: ITodo[] = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
     todos.forEach((todo, index) => {
       todo.id = index
     })
     todoStorage.uid = todos.length
-    return todos
+    return todos as ITodo[]
   },
   save (todos) {
     if (!Array.isArray(todos)) return false
     localStorage.setItem(STORAGE_KEY, JSON.stringify(todos))
-  }
+  },
+  uid: 0
 }
 
-// visibility filters
-const filters = {
+const filters: IFilters = {
   all (todos) {
     return todos
   },
@@ -107,14 +122,15 @@ const filters = {
     })
   }
 }
-export default {
+
+const Component = defineComponent({
   name: 'App',
   setup () {
     const todos = ref(todoStorage.fetch())
     const visibility = ref('all')
     const newTodo = ref('')
-    const editedTodo = ref(null)
-    const beforeEditCache = ref(null)
+    const editedTodo: Ref<null | ITodo> = ref(null)
+    const beforeEditCache = ref('')
     const filteredTodos = computed(() => filters[visibility.value](todos.value))
     const remaining = computed(() => filters.active(todos.value).length)
     const allDone = computed({
@@ -146,14 +162,14 @@ export default {
       })
       newTodo.value= ''
     }
-    const removeTodo = (todo) => {
-      todos.value.splice(todos.value.indexOf(todo), 1);
+    const removeTodo = (todo: ITodo) => {
+      todos.value.splice(todos.value.indexOf(todo), 1)
     }
-    const editTodo = (todo) => {
-      beforeEditCache.value = todo.title;
+    const editTodo = (todo: ITodo) => {
+      beforeEditCache.value = todo.title
       editedTodo.value = todo
     }
-    const doneEdit = (todo) => {
+    const doneEdit = (todo: ITodo) => {
       if (!editedTodo.value) {
         return
       }
@@ -163,7 +179,7 @@ export default {
         removeTodo(todo)
       }
     }
-    const cancelEdit = (todo) => {
+    const cancelEdit = (todo: ITodo) => {
       editedTodo.value = null
       todo.title = beforeEditCache.value
     }
@@ -171,7 +187,7 @@ export default {
       todos.value = filters.active(todos.value)
     }
     const onHashChange = () => {
-        const visible = window.location.hash.replace(/#\/?/, '')
+        const visible: string = window.location.hash.replace(/#\/?/, '')
         if (filters[visible]) {
           visibility.value = visible
         } else {
@@ -202,7 +218,9 @@ export default {
       }
     }
   }
-}
+})
+
+export default Component
 </script>
 
 <style>
