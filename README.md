@@ -24,3 +24,5 @@ npm run build
 
 ### 在线预览
 [点我预览](https://hellomrbigshot.github.io/next-todo-list/)
+
+本项目已使用 ```typescript``` 重构
